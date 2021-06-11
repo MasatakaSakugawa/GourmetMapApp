@@ -14,11 +14,17 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.example.gourmetmapapp.LocationManagerUtil
 
-
-private const val REQUEST_CODE_PERMISSIONS = 1
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+
+
+    private val REQUEST_CODE_PERMISSIONS = 1
+    //必要な権限の種類が格納される
+    private var latitude: Double? = null
+    //ユーザーの緯度
+    private var longitude: Double? = null
+    //ユーザーの経度
+    private var user_location: LatLng? = null
 
     private lateinit var mMap: GoogleMap
     private val locationManager: LocationManagerUtil by lazy {
@@ -36,13 +42,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 lon: ${location.longitude} 
                 acc: ${location.accuracy}
                 """)
+
+            latitude = location.latitude
+            longitude = location.longitude
+            user_location = LatLng(latitude!!,longitude!!)
         }
     }
 
     private var isPermissionDenied = false
         set(value) {
             field = value
-
             if (!value) {
                 // ユーザに権限が与えられているならば位置測位開始
                 locationManager.start()
@@ -63,20 +72,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onResume() {
         super.onResume()
-
         isPermissionDenied = !checkSelfPermissions()
     }
 
     override fun onPause() {
         super.onPause()
-
         // 位置測位の終了
         locationManager.stop()
     }
 
     private fun checkSelfPermissions(): Boolean {
         val deniedPermissions = arrayListOf<String>()
-
         // 位置情報の権限が与えられているか
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             deniedPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -87,7 +93,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             ActivityCompat.requestPermissions(this, deniedPermissions.toTypedArray(), REQUEST_CODE_PERMISSIONS)
             return false
         }
-
         return true
     }
 
@@ -95,7 +100,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (grantResults.isNotEmpty()) {
                 val deniedPermissions = arrayListOf<String>()
-
                 grantResults.forEachIndexed { index, result ->
                     if (result != PackageManager.PERMISSION_GRANTED) {
                         deniedPermissions.add(permissions[index])
@@ -103,33 +107,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
 
                 isPermissionDenied = deniedPermissions.isNotEmpty()
-
                 if (isPermissionDenied) {
                     // TODO: ユーザに権限が与えられなかったときの処理
                 }
             }
-
             return
         }
-
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
         // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        //val user_location = LatLng(latitude!!,longitude!!)
+        //mMap.addMarker(MarkerOptions().position(user_location).title("Marker in Sydney"))
+        //mMap.moveCamera(CameraUpdateFactory.newLatLng(user_location))
+        Log.d("日ああああああ", "x=" + user_location);
     }
 }
